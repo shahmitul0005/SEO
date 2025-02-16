@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEO Keyword and Blog Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            background: #f4f4f4;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background: #333;
+            color: #fff;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #444;
+        }
+        #loading, #results {
+            margin-top: 20px;
+        }
+        #loading {
+            display: none;
+            color: #666;
+        }
+        #results {
+            background: #e9e9e9;
+            padding: 20px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>SEO Keyword and Blog Generator</h1>
+    <form id="seoForm">
+        <label for="product">Product:</label>
+        <input type="text" id="product" name="product" required>
+        
+        <label for="painPoints">Pain Points:</label>
+        <textarea id="painPoints" name="painPoints" required></textarea>
+        
+        <label for="goals">Goals:</label>
+        <textarea id="goals" name="goals" required></textarea>
+        
+        <label for="targetAudience">Specific Target Audience:</label>
+        <textarea id="targetAudience" name="targetAudience" required></textarea>
+        
+        <button type="submit">Generate SEO Content</button>
+    </form>
+
+    <div id="loading">Generating SEO content... Please wait.</div>
+
+    <div id="results" style="display:none;">
+        <h2>Results</h2>
+        <h3>SEO Keywords:</h3>
+        <div id="seoKeywords"></div>
+        <h3>Blog Content:</h3>
+        <div id="blogContent"></div>
+    </div>
+
+    <script>
+        const BASE_API_URL = "https://api.langflow.astra.datastax.com";
+        const LANGFLOW_ID = "0c94fdaf-2d64-4a31-a51e-0e0940bf4a58";
+        const FLOW_ID = "759783f9-abea-4611-ae2b-38ac2289a48a";
+        const APPLICATION_TOKEN = "AstraCS:wxmgeIRMLlpygrkTcrZpTZyP:dccf5bea94045ba6e5b618dc7496c8eded96712276f03f7dc8b0704855a6e102";
+
+        const TWEAKS = {
+            "Prompt-1iI5M": {},
+            "Prompt-K05PD": {},
+            "ChatOutput-dQns3": {},
+            "ChatInput-PFUmu": {},
+            "GoogleGenerativeAIModel-UDgd3": {},
+            "GoogleGenerativeAIModel-1FQDy": {},
+            "Prompt-0PHV3": {}
+        };
+
+        document.getElementById('seoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+
+            try {
+                const response = await fetch(`${BASE_API_URL}/lf/${LANGFLOW_ID}/api/v1/run/${FLOW_ID}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${APPLICATION_TOKEN}`
+                    },
+                    body: JSON.stringify({
+                        input_value: JSON.stringify(data),
+                        output_type: "chat",
+                        input_type: "chat",
+                        tweaks: TWEAKS
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to generate SEO content');
+                }
+
+                const result = await response.json();
+
+                document.getElementById('seoKeywords').textContent = result.seo_keywords || 'No SEO keywords generated.';
+                document.getElementById('blogContent').textContent = result.blog_content || 'No blog content generated.';
+                document.getElementById('results').style.display = 'block';
+            } catch (error) {
+                console.error(error);
+                alert('An error occurred while generating SEO content. Please try again.');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
